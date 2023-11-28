@@ -7,20 +7,19 @@ import { UserModule } from './modules/user/user.module';
 import { User } from './modules/user/entities/user.entity';
 import { envConfig } from './config/env.config';
 
-const { db_name, db_username, db_password, db_host, db_port } =
-  envConfig.db_credentials;
+const { dbName, dbUsername, dbPassword, dbHost, dbPort } = envConfig.dbConfig;
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: db_host,
-      port: db_port,
-      password: db_password,
-      username: db_username,
+      host: dbHost,
+      port: dbPort,
+      password: dbPassword,
+      username: dbUsername,
       entities: [User],
-      database: db_name,
-      synchronize: true, //set 'false' for no alternation, set 'true' for db alteration
+      database: dbName,
+      synchronize: true, //set 'false' for no alternation, set 'true' for db_alteration
       logging: true,
     }),
     UserModule,
