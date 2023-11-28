@@ -8,7 +8,7 @@ import { User } from './modules/user/entities/user.entity';
 import { envConfig } from './config/env.config';
 
 const { db_name, db_username, db_password, db_host, db_port } =
-  envConfig.db_credentials();
+  envConfig.db_credentials;
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),

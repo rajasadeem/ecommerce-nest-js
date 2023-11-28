@@ -11,7 +11,7 @@ import { envConfig } from 'src/config/env.config';
     TypeOrmModule.forFeature([User]),
     JwtModule.register({
       global: true,
-      secret: envConfig.jwt_secret(),
+      secret: envConfig.jwt_secret,
       signOptions: { expiresIn: '1d' },
     }),
   ],
