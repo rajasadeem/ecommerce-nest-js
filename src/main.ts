@@ -6,7 +6,9 @@ import { envConfig } from './config/env.config';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(new ValidationPipe());
-  const { port } = envConfig()
+
+  const port = envConfig.port();
+
   await app.listen(port, () => {
     console.log(`server running: http://localhost:${port}`);
   });

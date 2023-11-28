@@ -2,19 +2,23 @@ import {
   Injectable,
   ConflictException,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
-import { generateHash } from 'src/common/utils';
+import { generateHash, validateHash } from 'src/common/utils';
 import { USER_CONSTANTS } from 'src/constants/user.constants';
+import { LoginUserDto } from './dto/login-user.dto';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
+    private jwtService: JwtService,
   ) {}
 
   async create(createUserDto: CreateUserDto) {
@@ -26,6 +30,28 @@ export class UserService {
     const { password } = createUserDto;
     createUserDto.password = generateHash(password);
     return this.userRepository.save(createUserDto);
+  }
+
+  async login(loginUserDto: LoginUserDto) {
+    const isExist = await this.findByEmail(loginUserDto.email);
+
+    if (!isExist)
+      throw new UnauthorizedException(USER_CONSTANTS.INCORRECT_EMAIL);
+
+    const validatePassword = await validateHash(
+      loginUserDto.password,
+      isExist.password,
+    );
+
+    if (!validatePassword)
+      throw new UnauthorizedException(USER_CONSTANTS.PASSWORD_MISMATCH);
+
+    const accessToken = await this.jwtService.signAsync({
+      id: isExist.id,
+      name: isExist.name,
+      email: isExist.email,
+    });
+    return { jwtToken: accessToken, userData: isExist };
   }
 
   findByEmail(email: string) {
@@ -47,7 +73,13 @@ export class UserService {
     if (updateUserDto.password)
       updateUserDto.password = generateHash(updateUserDto.password);
 
-    return await this.userRepository.update(id, updateUserDto);
+    return await this.userRepository
+      .createQueryBuilder()
+      .update(User)
+      .set(updateUserDto)
+      .where('id = :id', { id })
+      .returning('*') // PostgreSQL syntax to return the updated data
+      .execute();
   }
 
   async remove(id: string) {

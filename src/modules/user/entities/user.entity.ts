@@ -4,7 +4,7 @@ enum UserRole {
   Admin = 1,
   Customer = 2,
 }
-@Entity()
+@Entity({ name: 'users' })
 export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
